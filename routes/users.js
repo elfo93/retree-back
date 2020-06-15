@@ -1,19 +1,24 @@
 'use strict'
-
 const express = require('express')
 const router = express.Router()
-//const md5 = require('md5')
+const firebase = require('firebase')
 const User = require('../models/users')
-//middleware configurable para autenticación
-//const authMiddleware = require('../middlewares/authentication')
+const md5 = require('md5')
+const mustAuthMiddleware = require ('../middlewares/mustAuth')
 
-//middleware configurable para usar el método sólo administradores
-//const methodAllowedOnlyForAdmins = authMiddleware(['admin'], true)
-//middleware configurable para usar el método usuarios y administradores
-//const methodAllowedForUsersAndAdmins = authMiddleware(['user', 'admin'], true)
+async function createUserFirebase(email, password){
+
+  let auth = await firebase.auth().createUserWithEmailAndPassword(email, password)
+  return auth
+}
+
+const methodAllowedOnlyForAdmins = mustAuthMiddleware(['admin'], true)
+const methodAllowedForUsersAndAdmins =  mustAuthMiddleware(['user', 'admin'], true)
+
 
 router.route('/users')
-  .get(/*methodAllowedOnlyForAdmins*/ async (req, res) => {
+  // listar usuarios solo para admin
+  .get(methodAllowedOnlyForAdmins , async (req, res) => {
     let itemList = await User.find().exec()
 
     let filteredList = itemList.map((item) => {
@@ -27,15 +32,25 @@ router.route('/users')
     res.json(filteredList)
   })
 
+  // crear usuario de forma publica
+
   .post(async (req, res) => {
+
     let data = req.body
 
     try {
+
       let newUser = await createUserFirebase(data.email, data.password)
+
+      let encripted = md5(data.password);
+
       let UserData = {
         firstname: data.firstname,
         lastname: data.lastname,
         email: data.email,
+        password: encripted,
+        adress : data.adress,
+        phone: data.phone,
         _id: newUser.user.uid
       }
 
@@ -46,14 +61,16 @@ router.route('/users')
     } catch(e){
       res.status(500).json({error: e.message})
     }
-  });
 
+  })
+
+// listar un usuario concreto por su id
 router.route('/users/:id')
-  .get(/*methodAllowedForUsersAndAdmins,*/ async (req, res) => {
+  .get(methodAllowedForUsersAndAdmins, async (req, res) => {
 
     let searchId = req.params.id
 
-    if (req.user.profile !== 'admin' && searchId !== req.user.id) {
+    if (req.user.rol !== 'admin' && searchId !== req.user.id) {
       res.status(403).json({ 'message': 'Permisos insuficientes' })
       return
     }
@@ -62,38 +79,44 @@ router.route('/users/:id')
 
     if (!foundItem) {
       console.info(searchId, "No encontrado")
-      res.status(404).json({ 'message': 'El elemento que intentas eliminar no existe' })
+      res.status(404).json({ 'message': 'El usuario que buscas no existe' })
       return
     }
 
-    let foundUser = foundItem.toJSON()
+    let foundUser = foundItem.toJSON() // preguntar el toJson xq
     delete foundUser.password
 
     res.json(foundUser)
   })
-  .put(/*methodAllowedForUsersAndAdmins,*/ async (req, res) => {
+
+// editar un usuario por su id
+  .put (methodAllowedForUsersAndAdmins, async(req , res) => {
 
     let searchId = req.params.id
     let filters = {_id: searchId}
+
 
     if (req.user.profile !== 'admin' && searchId !== req.user.id) {
       res.status(403).json({ 'message': 'Permisos insuficientes' })
       return
     }
 
-    let foundItem = await User.findOneAndUpdate(filters,req.body, {new: true}).exec()
+    let foundItem = await User.findOneAndUpdate(filters, req.body, {new: true}).exec()
 
     if (!foundItem) {
-      res.status(404).json({ 'message': 'El elemento que intentas eliminar no existe' })
+      console.info(searchId, "No encontrado")
+      res.status(404).json({ 'message': 'El usuario que intentas editar no existe' })
       return
     }
 
     let foundUser = foundItem.toJSON()
-    delete foundUser.password
 
     res.json(foundUser)
   })
-  .delete(/*methodAllowedForUsersAndAdmins*/ async (req, res) => {
+
+// eliminar un usuario por su id
+
+  .delete(methodAllowedForUsersAndAdmins, async (req,res) => {
     let searchId = req.params.id
     let filters = {_id: searchId}
 
@@ -103,13 +126,16 @@ router.route('/users/:id')
     }
 
     let foundItem = await User.findOneAndDelete(filters).exec()
-
+    // deberia borrarlo tambien en firebase ?
     if (!foundItem) {
       res.status(404).json({ 'message': 'El elemento que intentas eliminar no existe' })
       return
     }
 
     res.status(204).json()
-  })
+
+  });
+
+
 
 module.exports = router

@@ -16,12 +16,13 @@ app.use(express.json())
 app.use(bearerToken())
 app.use(cors())
 
-//const productsRoutes = require('./routes/products')
+const productsRoutes = require('./routes/products')
 const usersRoutes = require('./routes/users')
+const authRoutes = require('./routes/auth')
 
-//app.use(productsRoutes)
+app.use(productsRoutes)
 app.use(usersRoutes)
-
+app.use(authRoutes)
 
 database.connect()
 

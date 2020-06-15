@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
-//const config = require('./config')
-
+const config = require ('./config')
 
 
 class Database {
@@ -14,7 +13,7 @@ class Database {
 
 
     try {
-      await mongoose.connect("mongodb+srv://elvirapedrega:recuerdame@cluster0-hg3bv.mongodb.net/retree?retryWrites=true&w=majorit", {useFindAndModify:false, useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true });
+      await mongoose.connect( config.mongoConfig , {useFindAndModify:false, useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true });
 
       console.log("Conectado a MongoDB");
     } catch (e) {

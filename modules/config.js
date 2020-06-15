@@ -20,12 +20,12 @@ const jwtPassword = process.env.JWT_PASSWORD  || envs.JWT_PASSWORD ;
 
 const config = {
 	firebaseConfig,
-  /*mongoConfig,*/
+  mongoConfig,
   jwtPassword
 }
 
 exports.firebaseConfig = firebaseConfig
-//exports.mongoConfig = mongoConfig
-
+exports.mongoConfig = mongoConfig
+exports.jwtPassword = jwtPassword
 
 module.exports = config;
