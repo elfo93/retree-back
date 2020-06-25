@@ -8,7 +8,7 @@ let userSchema = new Schema({
   password: { type: String, required: true , default: 'password' },
   address: {type: String, required: false, unique: false},
   phone:  {type: Number, required: false, unique: false},
-  rol: { type: String, required: false, default: 'admin' },
+  rol: { type: String, required: false, default: 'user' },
   _id: {type: String, required: true},
   enabled: { type: Boolean, default: false },
 });

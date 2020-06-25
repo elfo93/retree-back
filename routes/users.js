@@ -117,6 +117,7 @@ router.route('/users/:id')
 // eliminar un usuario por su id
 
   .delete(methodAllowedForUsersAndAdmins, async (req,res) => {
+
     let searchId = req.params.id
     let filters = {_id: searchId}
 
@@ -126,6 +127,7 @@ router.route('/users/:id')
     }
 
     let foundItem = await User.findOneAndDelete(filters).exec()
+
     // deberia borrarlo tambien en firebase ?
     if (!foundItem) {
       res.status(404).json({ 'message': 'El elemento que intentas eliminar no existe' })
