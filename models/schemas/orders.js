@@ -5,6 +5,7 @@ let itemSchema = new Schema({
 
   products: [{
     title: { type: String, required: true },
+    image: { type: String, required: false },
     description: { type: String, required: false },
     price: { type: Number, required: true },
     quantity: { type: Number, required: true },

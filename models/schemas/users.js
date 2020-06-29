@@ -6,7 +6,7 @@ let userSchema = new Schema({
   lastname: { type: String, required: false, unique: false },
   email: { type: String, required: true, unique: false },
   password: { type: String, required: true , default: 'password' },
-  address: {type: String, required: false, unique: false},
+  address: {type: String, required: true, unique: false},
   phone:  {type: Number, required: false, unique: false},
   rol: { type: String, required: false, default: 'user' },
   _id: {type: String, required: true},

@@ -1,8 +1,11 @@
 const express = require('express')
 const router = express.Router()
 const Orders = require('../models/orders')
-
+const User = require('../models/users')
+const userShema = require('../models/schemas/users')
 const mustAuthMiddleware = require ('../middlewares/mustAuth')
+const { ObjectId } = require('mongoose')
+
 
 const methodAllowedOnlyForAdmins = mustAuthMiddleware(['admin'], true)
 const methodAllowedForUsersAndAdmins =  mustAuthMiddleware(['user', 'admin'], true)
@@ -18,15 +21,24 @@ router.route('/orders')
 
     let itemList = await Orders.find(filters).exec()
 
+    try{
+      let foundUser = await User.findById(searchId).exec()
+      itemList.user = foundUser
+    } catch(err){
+      console.log(err)
+    }
     // Buscas en Mongo el usuario con id: req.user.id
     // Lo añades a itemList.user = {   }
 
-    res.json(itemList)
+  res.json(itemList)
   })
 
   .post(mustAuthMiddleware(),async (req, res) => {
 
-    let productOrdered = req.body
+    try{
+
+      let productOrdered = req.body
+      console.log(req.body)
 
       let orderData =  {
         user_id: req.user.id,
@@ -37,6 +49,10 @@ router.route('/orders')
       console.log(orderData)
       res.status(201).json(newOrder)
 
+    } catch(error){
+     console.log(error)
+    }
+
   })
 
 router.route('/orders/:id')
@@ -44,7 +60,12 @@ router.route('/orders/:id')
 
     let searchId = req.params.id
 
-    let foundItem = await Orders.findById(searchId).exec()
+    try{
+      let foundItem = await Orders.findById(searchId).exec()
+    }
+    catch(error){
+      alert(error)
+    }
 
     if (!foundItem) {
       res.status(404).json({ 'message': 'El elemento que intentas obtener no existe' })
@@ -52,7 +73,7 @@ router.route('/orders/:id')
     }
 
 
-    if(req.user.profile !== 'admin' && foundItem.user.id !== req.user.id){
+    if(req.user.rol !== 'admin' && foundItem.user.id !== req.user.id){
       res.status(403).json({ 'message': 'Permiso denegado' })
       return
     }

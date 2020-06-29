@@ -49,13 +49,13 @@ router.route('/users')
         lastname: data.lastname,
         email: data.email,
         password: encripted,
-        adress : data.adress,
+        address : data.address,
         phone: data.phone,
         _id: newUser.user.uid
       }
 
       let newUserInMongo = await new User(UserData).save();
-
+      console.log(newUser.user.uid)
       res.json(newUserInMongo)
 
     } catch(e){
@@ -66,28 +66,29 @@ router.route('/users')
 
 // listar un usuario concreto por su id
 router.route('/users/:id')
-  .get(methodAllowedForUsersAndAdmins, async (req, res) => {
+.get(methodAllowedForUsersAndAdmins , async (req, res) => {
 
-    let searchId = req.params.id
+  console.log(req.params.id)
+  let searchId = req.params.id
 
-    if (req.user.rol !== 'admin' && searchId !== req.user.id) {
-      res.status(403).json({ 'message': 'Permisos insuficientes' })
-      return
-    }
+  if (req.user.rol !== 'admin' && searchId !== req.user.id) {
+    res.status(403).json({ 'message': 'Permisos insuficientes' })
+    return
+  }
 
-    let foundItem = await User.findById(searchId).exec()
+  let foundItem = await User.findById(searchId).exec()
 
-    if (!foundItem) {
-      console.info(searchId, "No encontrado")
-      res.status(404).json({ 'message': 'El usuario que buscas no existe' })
-      return
-    }
+  if (!foundItem) {
+    console.info(searchId, "No encontrado")
+    res.status(404).json({ 'message': 'El elemento que intentas eliminar no existe' })
+    return
+  }
 
-    let foundUser = foundItem.toJSON() // preguntar el toJson xq
-    delete foundUser.password
+  let foundUser = foundItem.toJSON()
+  delete foundUser.password
 
-    res.json(foundUser)
-  })
+  res.json(foundUser)
+})
 
 // editar un usuario por su id
   .put (methodAllowedForUsersAndAdmins, async(req , res) => {
@@ -96,7 +97,7 @@ router.route('/users/:id')
     let filters = {_id: searchId}
 
 
-    if (req.user.profile !== 'admin' && searchId !== req.user.id) {
+    if (req.user.rol !== 'admin' && searchId !== req.user.id) {
       res.status(403).json({ 'message': 'Permisos insuficientes' })
       return
     }

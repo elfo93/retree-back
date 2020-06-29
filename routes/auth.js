@@ -28,11 +28,12 @@ router.route("/auth/login")
     };
 
     let token = jwt.sign(payload, config.jwtPassword);
-
-    res.json(token);
+    let userId = auth.user.uid
+    res.json({token , userId});
 
   } catch (e) {
     res.status(401).json({ message: e.message });
+    // alert(e.message)
   }
 
 })
